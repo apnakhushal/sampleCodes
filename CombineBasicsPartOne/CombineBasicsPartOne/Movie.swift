@@ -11,7 +11,6 @@ struct Movie: Codable, Hashable, Equatable {
     let id: String?
     let type: String?
     let primaryTitle: String?
-    let originalTitle: String?
     let primaryImage: PrimaryImage?
     let startYear: Int?
     let rating: Rating?

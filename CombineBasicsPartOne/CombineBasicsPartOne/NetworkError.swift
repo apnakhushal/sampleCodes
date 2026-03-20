@@ -11,12 +11,14 @@ enum NetworkError: Error, LocalizedError {
     case invalidResponse
     case addressNotFound
     case decodingError(Error)
+    case invalidURL
     
     var errorDescription: String? {
         switch self {
-        case .invalidResponse: return "The server gave a bad response."
-        case .addressNotFound: return "Check your internet connection."
-        case .decodingError(let err): return "JSON Mismatch: \(err.localizedDescription)"
+        case .invalidResponse: "The server gave a bad response."
+        case .addressNotFound: "Check your internet connection."
+        case .decodingError(let err): "JSON Mismatch: \(err.localizedDescription)"
+        case .invalidURL: "Invalid URL"
         }
     }
 }
