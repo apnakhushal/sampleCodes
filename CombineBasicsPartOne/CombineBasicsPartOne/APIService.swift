@@ -35,7 +35,8 @@ class APIService {
 
         }.resume()
     }
-    
+
+    // immediate execution as soon as its initialized
     func fetchMoviePublisher(movieID: String) -> Future<Movie, Error> {
         return Future { promise in
             print("kjkj start executing ONLY Future fetchMovie...")

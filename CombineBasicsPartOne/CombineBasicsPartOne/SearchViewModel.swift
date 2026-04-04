@@ -34,46 +34,66 @@ class SearchViewModel: ObservableObject {
         errorMessage = nil
         
         // MARK: API call using Future publisher
-        apiService.fetchMoviePublisher(movieID: "tt0499549")
+        let moviePublisher = apiService.fetchMoviePublisher(movieID: "tt0499549")
+
+        moviePublisher.sink(
+                receiveCompletion: { completion in
+                    switch completion {
+                    case .finished:
+                        print("kjkj FP fetchMovie Future Completed")
+                    case .failure(let error):
+                        print("kjkj FP Error:", error)
+                    }
+                },
+                receiveValue: { movie in
+                    print("kjkj FP Movie:", movie)
+                }
+            )
+            .store(in: &cancellables)
+
+
+        // MARK: API call using Future publisher
+        moviePublisher
             .sink(
                 receiveCompletion: { completion in
                     switch completion {
                     case .finished:
-                        print("kjkj fetchMovie Future Completed")
+                        print("kjkj FP ONCE AGAIN fetchMovie Future Completed")
                     case .failure(let error):
-                        print("kjkj Error:", error)
+                        print("kjkj FP ONCE AGAIN Error:", error)
                     }
                 },
                 receiveValue: { movie in
-                    print("kjkj Movie:", movie)
+                    print("kjkj FP ONCE AGAIN Movie:", movie)
                 }
             )
             .store(in: &cancellables)
-        
         
         // MARK: API call using Future with Deferred publisher
-        apiService.fetchMovieDeferredPublisher(movieID: "tt0120338")
+
+         apiService.fetchMovieDeferredPublisher(movieID: "tt0120338")
             .sink(
                 receiveCompletion: { completion in
                     switch completion {
                     case .finished:
-                        print("kjkj fetchMovie FutureDeferred Completed")
+                        print("kjkj DFP fetchMovie FutureDeferred Completed")
                     case .failure(let error):
-                        print("kjkj Error:", error)
+                        print("kjkj DFP Error:", error)
                     }
                 },
                 receiveValue: { movie in
-                    print("kjkj Movie:", movie)
+                    print("kjkj DFP Movie:", movie)
                 }
             )
             .store(in: &cancellables)
-        
+
         // MARK: share() operator
 
-        // MARK: Search API Call with and without using share()
-        
+        // MARK: Search API Call with and without using share() [need to remove share() from publisher
+
         let sharedSearchPublisher = sharedSearchMoviePublisher(query: query)
-        
+
+        // subscriber one
         sharedSearchPublisher
             .receive(on: RunLoop.main)
             .sink(receiveCompletion: { [weak self] completion in
@@ -87,7 +107,8 @@ class SearchViewModel: ObservableObject {
                 self?.results = response.titles
             })
             .store(in: &cancellables)
-        
+
+        // subscriber two
         sharedSearchPublisher
             .receive(on: RunLoop.main)
             .sink(receiveCompletion: { [weak self] completion in
@@ -101,20 +122,14 @@ class SearchViewModel: ObservableObject {
                 self?.results = response.titles
             })
             .store(in: &cancellables)
-        
 
-//        DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
-//            self?.tempCancellable =
-//        }
-
-        
         // MARK: multicast() operator
-        
+
         let passThroughSubject = PassthroughSubject<Data, URLError>()
         
         let multicastedPublisher = URLSession.shared.dataTaskPublisher(for: URL(string: "https://jsonplaceholder.typicode.com/todos/1")!)
             .map { $0.data }
-            .print("kjkj Mulitcast example")
+            .print("kjkj MP Mulitcast example")
             .multicast(subject: passThroughSubject)
         
         multicastedPublisher
@@ -122,13 +137,13 @@ class SearchViewModel: ObservableObject {
                 receiveCompletion: { completion in
                     switch completion {
                     case .finished:
-                        print("Finished")
+                        print("kjkj MP First Finished")
                     case .failure(let error):
-                        print("Error:", error)
+                        print("kjkj MP First Error:", error)
                     }
                 },
                 receiveValue: { value in
-                    print("kjkj Multi First Value:", value)
+                    print("kjkj MP Multi First Value:", value)
                 }
             )
             .store(in: &cancellables)
@@ -138,17 +153,18 @@ class SearchViewModel: ObservableObject {
                 receiveCompletion: { completion in
                     switch completion {
                     case .finished:
-                        print("Finished")
+                        print("kjkj MP Second Finished")
                     case .failure(let error):
-                        print("Error:", error)
+                        print("kjkj MP Second Error:", error)
                     }
                 },
                 receiveValue: { value in
-                    print("kjkj Multi Second Value:", value)
+                    print("kjkj MP Second Value:", value)
                 }
             )
             .store(in: &cancellables)
 
+        // trigger point for execution
         multicastedPublisher.connect()
             .store(in: &cancellables)
     }
@@ -164,8 +180,8 @@ class SearchViewModel: ObservableObject {
 //            .handleEvents(receiveSubscription: { _ in
 //                    print("kjkj SEARCH API Call Started")
 //                })
-            .print("kjkj SEARCH API")
-        
+            .print("ABC")
+
             // Check for HTTP errors
             .tryMap { element -> Data in
                 guard let response = element.response as? HTTPURLResponse,
